@@ -1,0 +1,14 @@
+.venv
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.DS_Store
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+
+# Outputs (may contain PII)
+outputs/
+
