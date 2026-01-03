@@ -1,13 +1,13 @@
 # Fireworks AI KYC PoV System
 
-Production-grade identity verification pipeline for FSI (Financial Services Industry) leveraging Fireworks AI's `qwen2p5-vl-32b-instruct` vision model.
+Identity verification pipeline for FSI (Financial Services Industry) leveraging Fireworks AI's `qwen2p5-vl-32b-instruct` vision model.
 
 ## Features
 
-- **Multi-format ingestion**: JPG, PNG, GIF, BMP, TIFF, WebP
+- **Multi-format ingestion**: JPG, JPEG, PNG, GIF, BMP, TIFF, WebP
 - **Intelligent extraction**: Structured JSON output for passport and driver's license fields
 - **Three-layer validation**:
-  1. **Technical**: Laplacian blur detection, pHash deduplication
+  1. **Technical**: Blur detection, pHash deduplication
   2. **Business logic**: Date consistency, regex patterns, MRZ cross-validation
   3. **AI confidence**: Model-reported probability scores
 - **Unified Confidence Score (UCS)**: Weighted composite of AI probability (40%), image quality (20%), and logic checks (40%)
@@ -41,12 +41,21 @@ Optional Output (JSON + redacted image)
 ### Installation
 
 ```bash
-# Clone/navigate to project
-cd /Users/maomao/POV_Lei
+# Navigate to project directory
+cd path/to/POV_Lei
 
-# Create virtual environment
+# Create virtual environment with uv
 uv venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Activate virtual environment
+# macOS/Linux:
+source .venv/bin/activate
+
+# Windows (Command Prompt):
+.venv\Scripts\activate.bat
+
+# Windows (PowerShell):
+.venv\Scripts\Activate.ps1
 
 # Install dependencies
 uv pip install -e .
@@ -64,7 +73,7 @@ cp env.example .env
 
 ---
 
-## Usage
+## Quick Start
 
 ### Web Interface (Recommended)
 
@@ -80,12 +89,6 @@ Then open your browser to `http://localhost:8501` and:
 3. See confidence scores and validation issues
 4. Download results as JSON
 
-**Features:**
-- 🎨 Clean, ChatGPT-inspired interface
-- 📊 Visual confidence metrics
-- ⚠️ Inline issue detection
-- 📥 One-click JSON export
-
 ---
 
 ### Command Line
@@ -93,29 +96,32 @@ Then open your browser to `http://localhost:8501` and:
 #### Single Image
 
 ```bash
-# Basic usage (auto-detects MIME from extension)
-kyc-pov --image /path/to/passport.jpg
+# Zero Data Retention (results to console only, no files saved)
+kyc-pov --image data/uploads/passport-1.jpeg
 
-# With output file
-kyc-pov --image /path/to/license.png --output results/license.json
+# With output storage
+kyc-pov --image data/uploads/License-3.jpeg --output outputs/License-3.json
 
-# Override MIME type
-kyc-pov --image /path/to/document --mime image/jpeg
+# Custom absolute paths (replace with your actual path)
+# macOS/Linux:   ~/Documents/my-license.png
+# Windows:       C:\Users\YourName\Documents\my-license.png
+kyc-pov --image /path/to/your/document.jpg --output /path/to/output.json
 ```
 
 #### Batch Processing
 
 ```bash
-# Process entire directory
-kyc-pov --batch data/uploads --output outputs
+# Process directory (saves to outputs/ by default)
+kyc-pov --batch data/uploads
 
-# Or use the provided script
+# Custom directory (replace with your actual path)
+kyc-pov --batch /path/to/your/documents --output /path/to/results
+
+# Using bash script (macOS/Linux, or Git Bash on Windows)
 ./scripts/batch_process.sh data/uploads outputs
 ```
 
-**Batch Output:**
-- Individual JSON files: `outputs/filename.json`
-- Summary report: `outputs/summary.json` (includes success/failure counts)
+If you see `"status": "SUCCESS"` or `"MANUAL_REVIEW"` (not `SYSTEM_ERROR`), the fix worked!
 
 ---
 
@@ -149,35 +155,12 @@ kyc-pov --batch data/uploads --output outputs
 
 ---
 
-## Design Decisions
-
-### Why JSON Object Mode (not strict schema)?
-Fireworks' strict `json_schema` mode can be fragile with complex nested structures. We use `json_object` mode with schema in prompt for better reliability while maintaining structure through Pydantic validation.
-
-### Why base64 encoding (not URLs)?
-**Compliance**: KYC data must not be exposed via public URLs. Base64 keeps PII within the encrypted API request body, aligning with ZDR principles.
-
-### Why remove PDF support?
-Simplicity and dependency reduction. Most production KYC flows pre-convert documents to images. If needed, add `pdf2image` back and uncomment PDF logic in `main.py`.
-
-### MRZ Cross-Validation
-For passports with Machine Readable Zone (MRZ), we:
-1. Parse MRZ line 2 to extract document number, birth date, expiry date
-2. Cross-check against visual zone fields
-3. Flag mismatches in `issues` and reduce logic score
-
----
-
 ## Known Limitations
 
-1. **Fireworks API constraints**:
+**Fireworks API constraints**:
    - Base64 total: <10MB
    - Max images per request: 30
    - Supported formats: `.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.tiff`, `.webp`
-
-2. **No real-time liveness detection**: This PoV focuses on document OCR, not biometric matching.
-
-3. **No external DB lookups**: Does not validate against government registries (out of scope for 24h delivery).
 
 ---
 
@@ -219,15 +202,3 @@ ruff format src/
 # Type check
 mypy src/
 ```
-
----
-
-## License
-
-MIT (or specify your license)
-
----
-
-## Contact
-
-For questions or production deployment inquiries, contact [your-email@example.com].

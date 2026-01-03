@@ -9,7 +9,8 @@ font="sans serif"
 headless = true
 enableCORS = false
 enableXsrfProtection = true
+# Add project root to Python path
+runOnSave = true
 
 [browser]
 gatherUsageStats = false
-
